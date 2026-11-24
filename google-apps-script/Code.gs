@@ -4,7 +4,7 @@ const RSVP_CONFIG = {
   timeZone: "Asia/Manila",
   rateLimitCount: 20,
   rateLimitSeconds: 60 * 60,
-  headers: ["Timestamp", "Full Name", "Attendance", "Submission ID"],
+  headers: ["Timestamp", "Full Name", "Attendance", "Submission ID", "Message"],
 };
 
 /** Run once from the Apps Script editor to grant access to the target sheet. */
@@ -102,6 +102,7 @@ function doPost(event) {
         row[columns.fullName - 1] = safeCellText_(name);
         row[columns.attendance - 1] = attendance;
         row[columns.submissionId - 1] = submissionId;
+        row[columns.message - 1] = safeCellText_(request.message);
         return row;
       });
 
@@ -179,10 +180,15 @@ function validateRsvp_(payload) {
     throw requestError_("INVALID_REQUEST", "Please remove duplicate guest names.");
   }
 
+  if (typeof payload.message !== "string" || payload.message.length > 500) {
+    throw requestError_("INVALID_REQUEST", "The message must be 500 characters or fewer.");
+  }
+
   return {
     requestId: payload.requestId,
     guestNames: guestNames,
     attendance: payload.attendance,
+    message: payload.message.trim(),
     sourceIp: payload.sourceIp,
   };
 }
@@ -195,6 +201,7 @@ function isValidProxySignature_(payload, secret) {
     requestId: payload.requestId,
     guestNames: payload.guestNames,
     attendance: payload.attendance,
+    message: payload.message,
     website: payload.website,
     sourceIp: payload.sourceIp,
   });
@@ -278,6 +285,7 @@ function ensureHeaders_(sheet) {
       fullName: 2,
       attendance: 3,
       submissionId: 4,
+      message: 5,
     };
   }
 
@@ -302,10 +310,11 @@ function ensureHeaders_(sheet) {
     fullName: columnFor("Full Name"),
     attendance: columnFor("Attendance"),
     submissionId: columnFor("Submission ID"),
+    message: columnFor("Message"),
   };
 
   if (
-    Object.keys(columns).some(function (key) {
+    ["timestamp", "fullName", "attendance", "submissionId"].some(function (key) {
       return columns[key] === 0;
     })
   ) {
@@ -313,6 +322,13 @@ function ensureHeaders_(sheet) {
       "CONFIGURATION",
       "The response tab must have Timestamp, Full Name, Attendance, and Submission ID headers in row 1. Existing data was left untouched.",
     );
+  }
+
+  if (columns.message === 0) {
+    // Add the new optional-message column after the existing used columns.
+    // This preserves every existing header and RSVP row.
+    columns.message = lastColumn + 1;
+    sheet.getRange(1, columns.message).setValue("Message");
   }
 
   return columns;

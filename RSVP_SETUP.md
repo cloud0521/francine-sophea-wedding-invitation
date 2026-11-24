@@ -1,14 +1,16 @@
 # Google Sheets RSVP setup
 
-The RSVP card supports 1–5 invited guests. Each guest is written to a separate
-row in the private response sheet, with one shared timestamp and submission ID
-for the group.
+The RSVP card supports 1–5 invited guests and an optional message for the
+couple. Each guest is written to a separate row in the private response sheet;
+the group's message, timestamp, and submission ID are shared across those rows.
 
-The linked spreadsheet was inspected before implementation. Its `responces`
-tab (sheet ID `0`) is currently empty and has no header row. The Apps Script
-below initializes the four requested headers on the first valid submission. If
+The linked spreadsheet was inspected before implementation. At that time its
+`responces` tab (sheet ID `0`) was empty and had no header row. The Apps Script
+below initializes the five requested headers on the first valid submission. If
 the tab has been changed before setup, the script checks the row 1 headers and
-stops without changing existing data unless all required columns are present.
+stops without changing existing data unless the required columns are present.
+If an older setup already has the first four columns, it appends a `Message`
+header and leaves prior rows untouched.
 
 ## 1. Create the Apps Script
 
@@ -90,9 +92,10 @@ the server. The browser only calls the same-origin `/api/rsvp` endpoint.
    response.
 3. Send the RSVP once and wait for the confirmation message.
 4. Open the spreadsheet's `responces` tab. The first valid RSVP creates these
-   headers: `Timestamp`, `Full Name`, `Attendance`, `Submission ID`.
-5. Confirm that two rows were added, one per guest, with the same timestamp and
-   submission ID. The attendance values are `Attending` or `Declined`.
+   headers: `Timestamp`, `Full Name`, `Attendance`, `Submission ID`, `Message`.
+5. Confirm that two rows were added, one per guest, with the same timestamp,
+   attendance, message, and submission ID. The attendance values are
+   `Attending` or `Declined`.
 6. Try the same page submission again only if you are checking the retry path;
    a network retry with the same request ID is idempotent and does not add rows.
 
@@ -106,12 +109,12 @@ shows an error so the guest can retry.
 - The Vercel Function signs the request with the server-only secret before
   forwarding it to Apps Script. Apps Script rejects direct unsigned requests.
 - Apps Script validates guest count, name length, duplicate names, attendance,
-  request ID, and the hidden honeypot before writing.
+  message length, request ID, and the hidden honeypot before writing.
 - A script lock serializes duplicate checks and writes. A deterministic,
   server-derived submission ID makes retries with the same request ID
   idempotent.
 - Each guest's row is appended in one `setValues()` batch. Formula-like names
-  are written as literal text.
+  and messages are written as literal text.
 - A lightweight per-IP hourly request limit is applied by Apps Script. It is
   intended for a small wedding RSVP form, not as a substitute for a managed
   abuse-prevention service under a large public attack.

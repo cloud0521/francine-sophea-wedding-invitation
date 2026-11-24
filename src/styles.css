@@ -3546,6 +3546,50 @@ footer > * {
   display: grid;
   gap: 18px;
 }
+.rsvp-message-field label {
+  display: block;
+  margin: 0 0 8px;
+  color: #294e65;
+  font: 600 10px / 1.4 "DM Sans", sans-serif;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.rsvp-message-field label span {
+  color: #8199aa;
+  font: italic 12px / 1.4 var(--serif);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.rsvp-redesign .rsvp-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 112px;
+  padding: 13px 15px;
+  border: 1px solid #c5d1d6;
+  border-radius: 5px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.36);
+  color: #294e65;
+  font: 15px / 1.6 var(--serif);
+  resize: vertical;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+.rsvp-redesign .rsvp-form textarea::placeholder {
+  color: #8199aa;
+}
+.rsvp-redesign .rsvp-form textarea:focus {
+  border-color: #8199aa;
+  background-color: #fffdf8;
+}
+.rsvp-message-count {
+  display: block;
+  margin-top: 5px;
+  color: #8199aa;
+  font: 11px / 1.4 "DM Sans", sans-serif;
+  text-align: right;
+}
 .rsvp-name-field.is-entering {
   animation: rsvp-guest-field-enter 520ms ease-out both;
 }

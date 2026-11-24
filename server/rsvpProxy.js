@@ -120,6 +120,7 @@ export async function forwardRsvp(request, payload, environment) {
     requestId: payload?.requestId,
     guestNames: payload?.guestNames,
     attendance: payload?.attendance,
+    message: payload?.message,
     website: payload?.website,
     sourceIp: getClientIp(request),
   };

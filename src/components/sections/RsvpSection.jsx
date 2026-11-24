@@ -69,6 +69,7 @@ function RsvpSection() {
   const [guestNames, setGuestNames] = useState([""]);
   const [enteringGuests, setEnteringGuests] = useState([]);
   const [response, setResponse] = useState("");
+  const [guestMessage, setGuestMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
@@ -179,13 +180,27 @@ function RsvpSection() {
       return;
     }
 
+    const normalizedMessage = guestMessage.trim();
+    if (normalizedMessage.length > 500) {
+      setFeedback({
+        type: "error",
+        text: "Your message must be 500 characters or fewer.",
+      });
+      return;
+    }
+    setGuestMessage(normalizedMessage);
+
     setGuestNames((currentNames) =>
       currentNames.map((name, index) =>
         index < guestCount ? normalizedNames[index] : name,
       ),
     );
 
-    const requestFingerprint = JSON.stringify([normalizedNames, response]);
+    const requestFingerprint = JSON.stringify([
+      normalizedNames,
+      response,
+      normalizedMessage,
+    ]);
     if (requestFingerprintRef.current !== requestFingerprint) {
       requestIdRef.current = createRequestId();
       requestFingerprintRef.current = requestFingerprint;
@@ -201,6 +216,7 @@ function RsvpSection() {
           requestId: requestIdRef.current,
           guestNames: normalizedNames,
           attendance: response,
+          message: normalizedMessage,
           website: "",
         }),
       });
@@ -259,9 +275,7 @@ function RsvpSection() {
         </div>
 
         <form onSubmit={handleSubmit} className="rsvp-form">
-          <div
-            className="rsvp-guest-count rsvp-reveal"
-          >
+          <div className="rsvp-guest-count rsvp-reveal">
             <label htmlFor="guest-count">Number of Guests</label>
             <select
               id="guest-count"
@@ -319,6 +333,28 @@ function RsvpSection() {
             autoComplete="off"
             aria-hidden="true"
           />
+
+          <div className="rsvp-message-field rsvp-reveal">
+            <label htmlFor="rsvp-message">
+              A message for the couple <span>(optional)</span>
+            </label>
+            <textarea
+              id="rsvp-message"
+              name="message"
+              value={guestMessage}
+              onChange={(event) => {
+                setGuestMessage(event.target.value);
+                setFeedback(null);
+              }}
+              placeholder="Share a note or a wish for us"
+              maxLength={500}
+              rows={4}
+              disabled={isSubmitting || feedback?.type === "success"}
+            />
+            <span className="rsvp-message-count" aria-live="polite">
+              {guestMessage.length}/500
+            </span>
+          </div>
 
           <fieldset
             className="rsvp-attendance rsvp-reveal"
