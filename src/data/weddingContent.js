@@ -1,0 +1,174 @@
+const image = (name) => `${import.meta.env.BASE_URL}images/${name}.webp`;
+
+const galleryPhotos = [
+  {
+    src: image("2"),
+    alt: "Sophea and Francine sharing a laugh in a sunlit field",
+    shape: "wide",
+  },
+  {
+    src: image("3"),
+      alt: "A close portrait of Sophea and Francine together",
+    shape: "portrait",
+  },
+  {
+    src: image("4"),
+      alt: "Sophea and Francine in prenup attire",
+    shape: "portrait",
+  },
+  {
+    src: image("5"),
+      alt: "Sophea and Francine walking together outdoors",
+    shape: "wide",
+  },
+  {
+    src: image("6"),
+      alt: "A quiet portrait of Sophea and Francine",
+    shape: "portrait",
+  },
+  {
+    src: image("9"),
+      alt: "Sophea and Francine sharing a tender moment",
+    shape: "portrait",
+  },
+  {
+    src: image("10"),
+      alt: "Sophea and Francine sharing a quiet embrace",
+    shape: "wide",
+  },
+  {
+    src: image("1"),
+    alt: "Sophea and Francine together in a garden",
+    shape: "wide",
+  },
+  {
+    src: image("7"),
+      alt: "Sophea and Francine in front of a cottage",
+    shape: "portrait",
+  },
+  {
+    src: image("8"),
+      alt: "Sophea and Francine dancing outside a timber pavilion",
+    shape: "wide",
+  },
+];
+
+const entourageGroups = [
+  { title: "Officiating Priest", people: ["Rev. Fr. Deary M. Jara"] },
+  {
+    title: "Maid of Honor",
+    people: ["Merryl Hondrada", "Marchet Valiente"],
+  },
+  { title: "Best Man", people: ["Ned Justine Guillen"] },
+  {
+    title: "Bridal Party",
+    people: [
+      "Aira Grace Guillen",
+      "Airish Kate Guillen",
+      "Nicole Espeso",
+      "Grace Ventura",
+    ],
+  },
+  {
+    title: "Groomsmen",
+    people: [
+      "Orlando Valiente Jr.",
+      "John Joshen Guillen",
+      "Ramil Pastrana Jr.",
+      "Dart Saytas",
+      "Cedric Dizon",
+    ],
+  },
+  {
+    title: "Bearers",
+    people: [
+      "Ring bearer · Zane Shean Nuyad",
+      "Bible bearer · Zean Shem Nuyad",
+      "Coin bearer · Dennis Bulao III",
+    ],
+  },
+  {
+    title: "Flower Girls",
+    people: [
+      "Kylie Lorraine Beatingo",
+      "Ezra Anequil Nuyad",
+      "Kesh Geraldine Donasco",
+    ],
+  },
+  {
+    title: "Parents",
+    people: [
+      "Dynally Guillen",
+      "Angelito Guillen",
+      "Nenita Valiente",
+      "Orlando Valiente Sr.",
+    ],
+  },
+  {
+    title: "Secondary Sponsors",
+    people: [
+      "Candle · Mr. and Mrs. Denmark & Mary Rose Bulao",
+      "Veil · Mr. and Mrs. Gerold & Ma. Lourdes Donasco",
+      "Cord · Mr. and Mrs. Jesus Nolindo II & Jelly Ann Guillen",
+    ],
+  },
+  {
+    title: "Principal Sponsors",
+    people: [
+      "Ramil Pastrana Sr.",
+      "Ma. Debbie Pastrana",
+      "Norman Hondrada",
+      "Elsie Hondrada",
+      "Regim Guadalupe",
+      "Sharon Guadalupe",
+      "Darius Pacson",
+      "Emily Pacson",
+      "Nobet Malutao",
+      "Sharon Malutao",
+      "Lando Bendoy",
+      "Sherlene Bendoy",
+      "Lino Palmos",
+      "Armida Palmos",
+      "Ysteven Militar",
+      "Lilibeth Militar",
+      "Gilbert Gabucay",
+      "Ana Girlie Gabucay",
+      "Nolinor Guillen",
+      "Aileen Guillen",
+      "Redan Paderna",
+      "Dhara Paderna",
+      "Cristopher Panes",
+      "Lina Panes",
+      "Rodel Remata",
+      "Roselice Remata",
+      "George Viliganilao",
+      "Janette Viliganilao",
+      "Jade Luther Rodriguez",
+      "Menie Rodriguez",
+      "Joenamil Piamonte",
+      "Mailyn Piamonte",
+      "Alvin Guillen",
+      "Teresa Guillen",
+      "Atty. Lilibet V. Gadian",
+      "Myrna Umba",
+      "Amelita Javie",
+      "Mrs. Evelyn Mahusay",
+      "Grace San Esteban",
+      "Rommel Pasan",
+      "Mrs. Diana Gallana",
+      "Marilou Santinor",
+      "Brenda Torre",
+      "Donna Bulao",
+      "Luzminda Marquez",
+      "Rogelio Bauden",
+      "Lani Bismar",
+      "Joseph Manit",
+      "Ma. Fe Cabillon",
+      "Rowena Lavega",
+      "Precy Joy Limsiaco",
+      "Odinah Dayot",
+    ],
+  },
+];
+
+export { entourageGroups, galleryPhotos, image };
