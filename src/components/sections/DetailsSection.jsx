@@ -129,10 +129,6 @@ function DetailsSection() {
           <EventDetails />
         </div>
 
-        <div className="wedding-day-divider" aria-hidden="true">
-          <img src={image("seperator")} alt="" />
-        </div>
-
         <div className="wedding-day-event wedding-day-reveal">
           <img
             className="wedding-day-illustration reception-illustration"

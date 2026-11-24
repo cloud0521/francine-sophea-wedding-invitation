@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+
+const RsvpContext = createContext(null);
 
 function EnvelopeIllustration() {
   return (
@@ -61,70 +63,52 @@ function createRequestId() {
     .join("")}`;
 }
 
-function RsvpSection() {
-  const sectionRef = useRef(null);
+export function RsvpProvider({ children }) {
   const requestIdRef = useRef("");
   const requestFingerprintRef = useRef("");
   const [guestCount, setGuestCount] = useState(1);
   const [guestNames, setGuestNames] = useState([""]);
-  const [enteringGuests, setEnteringGuests] = useState([]);
+  const [revealedGuestFields, setRevealedGuestFields] = useState(new Set());
   const [response, setResponse] = useState("");
   const [guestMessage, setGuestMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return undefined;
-
-    const revealGroups = section.querySelectorAll(
-      ".rsvp-reveal:not(.is-revealed)",
-    );
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    if (prefersReducedMotion || !("IntersectionObserver" in window)) {
-      revealGroups.forEach((group) => group.classList.add("is-revealed"));
-      return undefined;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-revealed");
-          observer.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.2 },
-    );
-
-    revealGroups.forEach((group) => observer.observe(group));
-    return () => observer.disconnect();
-  }, [guestCount]);
-
-  useEffect(() => {
-    if (enteringGuests.length === 0) return undefined;
-    const timeout = window.setTimeout(() => setEnteringGuests([]), 600);
-    return () => window.clearTimeout(timeout);
-  }, [enteringGuests]);
-
   const handleGuestCountChange = (event) => {
     const nextCount = Number(event.target.value);
 
     if (nextCount > guestCount) {
-      setEnteringGuests(
-        Array.from(
-          { length: nextCount - guestCount },
-          (_, index) => guestCount + index,
-        ),
-      );
-    } else {
-      setEnteringGuests([]);
+      setRevealedGuestFields((currentFields) => {
+        const nextFields = new Set(currentFields);
+        for (let index = guestCount; index < nextCount; index += 1) {
+          nextFields.add(index);
+        }
+        return nextFields;
+      });
     }
 
     setGuestCount(nextCount);
+    setFeedback(null);
+  };
+
+  const handleResponseChange = (value) => {
+    setResponse(value);
+    setFeedback(null);
+  };
+
+  const handleGuestMessageChange = (value) => {
+    setGuestMessage(value);
+    setFeedback(null);
+  };
+
+  const resetForm = () => {
+    requestIdRef.current = "";
+    requestFingerprintRef.current = "";
+    setGuestCount(1);
+    setGuestNames([""]);
+    setRevealedGuestFields(new Set());
+    setResponse("");
+    setGuestMessage("");
     setFeedback(null);
   };
 
@@ -256,16 +240,99 @@ function RsvpSection() {
   };
 
   return (
+    <RsvpContext.Provider
+      value={{
+        guestCount,
+        guestNames,
+        revealedGuestFields,
+        response,
+        guestMessage,
+        isSubmitting,
+        feedback,
+        handleGuestCountChange,
+        handleGuestNameChange,
+        handleResponseChange,
+        handleGuestMessageChange,
+        handleSubmit,
+        resetForm,
+      }}
+    >
+      {children}
+    </RsvpContext.Provider>
+  );
+}
+
+export function useRsvpForm() {
+  const context = useContext(RsvpContext);
+  if (!context) {
+    throw new Error("useRsvpForm must be used inside RsvpProvider.");
+  }
+  return context;
+}
+
+function RsvpSection({ modal = false }) {
+  const sectionRef = useRef(null);
+  const {
+    guestCount,
+    guestNames,
+    revealedGuestFields,
+    response,
+    guestMessage,
+    isSubmitting,
+    feedback,
+    handleGuestCountChange,
+    handleGuestNameChange,
+    handleResponseChange,
+    handleGuestMessageChange,
+    handleSubmit,
+    resetForm,
+  } = useRsvpForm();
+  const prefix = modal ? "rsvp-popup" : "rsvp";
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
+    const revealGroups = section.querySelectorAll(
+      ".rsvp-reveal:not(.is-revealed)",
+    );
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+      revealGroups.forEach((group) => group.classList.add("is-revealed"));
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-revealed");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.2 },
+    );
+
+    revealGroups.forEach((group) => observer.observe(group));
+    return () => observer.disconnect();
+  }, [guestCount, feedback?.type]);
+
+  return (
     <section
       ref={sectionRef}
-      className="rsvp-section chapter-card rsvp-redesign"
-      id="rsvp"
+      className={`rsvp-section chapter-card rsvp-redesign${
+        modal ? " rsvp-popup-card" : ""
+      }`}
+      id={modal ? "rsvp-popup-card" : "rsvp"}
       aria-label="RSVP"
     >
       <div className="rsvp-content">
         <div className="rsvp-intro rsvp-reveal">
           <EnvelopeIllustration />
-          <h2>RSVP</h2>
+          <h2 id={`${prefix}-heading`}>RSVP</h2>
           <p className="rsvp-subtitle">Be part of our forever.</p>
           <p className="rsvp-description">
             It would mean so much to have you with us as we begin this beautiful
@@ -274,11 +341,29 @@ function RsvpSection() {
           <RsvpFlourish />
         </div>
 
-        <form onSubmit={handleSubmit} className="rsvp-form">
+        {feedback?.type === "success" ? (
+          <div
+            className="rsvp-thank-you rsvp-reveal is-revealed"
+            role="status"
+            aria-live="polite"
+          >
+            <RsvpFlourish heart />
+            <h3>Thank you</h3>
+            <p>{feedback.text}</p>
+            <button
+              type="button"
+              className="submit-rsvp"
+              onClick={resetForm}
+            >
+              Submit another RSVP
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="rsvp-form">
           <div className="rsvp-guest-count rsvp-reveal">
-            <label htmlFor="guest-count">Number of Guests</label>
+            <label htmlFor={`${prefix}-guest-count`}>Number of Guests</label>
             <select
-              id="guest-count"
+              id={`${prefix}-guest-count`}
               name="guestCount"
               value={guestCount}
               onChange={handleGuestCountChange}
@@ -299,17 +384,19 @@ function RsvpSection() {
             {Array.from({ length: guestCount }, (_, index) => (
               <div
                 className={`rsvp-name-field rsvp-reveal${
-                  enteringGuests.includes(index) ? " is-entering" : ""
+                  revealedGuestFields.has(index)
+                    ? " is-revealed is-entering"
+                    : ""
                 }`}
                 key={index}
               >
-                <label htmlFor={`guest-name-${index + 1}`}>
+                <label htmlFor={`${prefix}-guest-name-${index + 1}`}>
                   {guestCount === 1
                     ? "Your full name"
                     : `Guest ${index + 1} — Full Name`}
                 </label>
                 <input
-                  id={`guest-name-${index + 1}`}
+                  id={`${prefix}-guest-name-${index + 1}`}
                   name={`guestName${index + 1}`}
                   autoComplete={index === 0 ? "name" : "off"}
                   value={guestNames[index] ?? ""}
@@ -335,17 +422,16 @@ function RsvpSection() {
           />
 
           <div className="rsvp-message-field rsvp-reveal">
-            <label htmlFor="rsvp-message">
+            <label htmlFor={`${prefix}-message`}>
               A message for the couple <span>(optional)</span>
             </label>
             <textarea
-              id="rsvp-message"
+              id={`${prefix}-message`}
               name="message"
               value={guestMessage}
-              onChange={(event) => {
-                setGuestMessage(event.target.value);
-                setFeedback(null);
-              }}
+              onChange={(event) =>
+                handleGuestMessageChange(event.target.value)
+              }
               placeholder="Share a note or a wish for us"
               maxLength={500}
               rows={4}
@@ -368,13 +454,10 @@ function RsvpSection() {
             >
               <input
                 type="radio"
-                name="attendance"
+                name={`${prefix}-attendance`}
                 value="accept"
                 checked={response === "accept"}
-                onChange={(event) => {
-                  setResponse(event.target.value);
-                  setFeedback(null);
-                }}
+                onChange={(event) => handleResponseChange(event.target.value)}
                 disabled={feedback?.type === "success"}
                 required
               />
@@ -389,13 +472,10 @@ function RsvpSection() {
             >
               <input
                 type="radio"
-                name="attendance"
+                name={`${prefix}-attendance`}
                 value="decline"
                 checked={response === "decline"}
-                onChange={(event) => {
-                  setResponse(event.target.value);
-                  setFeedback(null);
-                }}
+                onChange={(event) => handleResponseChange(event.target.value)}
                 disabled={feedback?.type === "success"}
               />
               <AttendanceIcon type="decline" />
@@ -429,11 +509,11 @@ function RsvpSection() {
               understanding.
             </p>
           </div>
-        </form>
+          </form>
+        )}
 
         <footer className="rsvp-signature rsvp-reveal">
           <RsvpFlourish heart />
-          <p>We cannot wait to celebrate with you.</p>
           <strong>Sophea &amp; Francine</strong>
         </footer>
       </div>

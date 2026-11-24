@@ -1,4 +1,11 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import AnnouncementSection from "./components/sections/AnnouncementSection.jsx";
 import AttireSection from "./components/sections/AttireSection.jsx";
 import CountdownSection from "./components/sections/CountdownSection.jsx";
@@ -7,16 +14,91 @@ import EntourageSection from "./components/sections/EntourageSection.jsx";
 import GallerySection from "./components/sections/GallerySection.jsx";
 import LoveStorySection from "./components/sections/LoveStorySection.jsx";
 import NotesSection from "./components/sections/NotesSection.jsx";
-import RsvpSection from "./components/sections/RsvpSection.jsx";
+import RsvpSection, {
+  RsvpProvider,
+  useRsvpForm,
+} from "./components/sections/RsvpSection.jsx";
 import ThankYouSection from "./components/sections/ThankYouSection.jsx";
 import OpeningScreen from "./components/OpeningScreen.jsx";
 import SiteHeader from "./components/SiteHeader.jsx";
 import { image } from "./data/weddingContent.js";
 
-function App() {
+function RsvpPopup({ onClose }) {
+  const closeButtonRef = useRef(null);
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableElements = dialogRef.current?.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusableElements?.length) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="rsvp-popup-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className="rsvp-popup-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rsvp-popup-heading"
+        tabIndex={-1}
+      >
+        <button
+          ref={closeButtonRef}
+          type="button"
+          className="rsvp-popup-close"
+          onClick={onClose}
+        >
+          Close <span aria-hidden="true">×</span>
+        </button>
+        <div className="rsvp-popup-scroll">
+          <RsvpSection modal />
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+function InvitationExperience() {
+  const { feedback, guestCount, guestNames, response, guestMessage } =
+    useRsvpForm();
   const [openingState, setOpeningState] = useState("closed");
   const [showOpening, setShowOpening] = useState(true);
   const [isHeroImageReady, setIsHeroImageReady] = useState(false);
+  const [isRsvpPopupOpen, setIsRsvpPopupOpen] = useState(false);
+  const [hasDismissedRsvpPopup, setHasDismissedRsvpPopup] = useState(false);
+  const hasAutoPromptedRsvp = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,10 +192,61 @@ function App() {
     };
   }, [openingState]);
 
+  useEffect(() => {
+    if (openingState !== "opened" || hasDismissedRsvpPopup) {
+      return undefined;
+    }
+
+    const hasStartedRsvp =
+      guestCount > 1 ||
+      guestNames.some((name) => name.trim()) ||
+      Boolean(response) ||
+      Boolean(guestMessage.trim());
+
+    if (feedback?.type === "success" || hasStartedRsvp) {
+      hasAutoPromptedRsvp.current = true;
+      return undefined;
+    }
+    if (hasAutoPromptedRsvp.current) return undefined;
+
+    const popupTimer = window.setTimeout(
+      () => {
+        hasAutoPromptedRsvp.current = true;
+        setIsRsvpPopupOpen(true);
+      },
+      3200,
+    );
+    return () => window.clearTimeout(popupTimer);
+  }, [
+    openingState,
+    feedback?.type,
+    guestCount,
+    guestNames,
+    response,
+    guestMessage,
+    hasDismissedRsvpPopup,
+  ]);
+
+  useEffect(() => {
+    if (!isRsvpPopupOpen) return undefined;
+
+    document.documentElement.classList.add("rsvp-popup-open");
+    document.body.classList.add("rsvp-popup-open");
+    return () => {
+      document.documentElement.classList.remove("rsvp-popup-open");
+      document.body.classList.remove("rsvp-popup-open");
+    };
+  }, [isRsvpPopupOpen]);
+
   const handleOpening = () => {
     if (openingState !== "closed" || !isHeroImageReady) return;
     setOpeningState("opening");
   };
+
+  const closeRsvpPopup = useCallback(() => {
+    setIsRsvpPopupOpen(false);
+    setHasDismissedRsvpPopup(true);
+  }, []);
 
   return (
     <>
@@ -123,13 +256,15 @@ function App() {
           onOpen={handleOpening}
         />
       )}
-      <SiteHeader inert={openingState !== "opened"} />
+      <SiteHeader
+        inert={openingState !== "opened" || isRsvpPopupOpen}
+      />
 
       <main
         className={`invitation-flow${
           openingState === "opening" ? " is-transition-revealing" : ""
         }`}
-        inert={openingState !== "opened"}
+        inert={openingState !== "opened" || isRsvpPopupOpen}
       >
         <AnnouncementSection />
         <CountdownSection />
@@ -143,7 +278,7 @@ function App() {
         <ThankYouSection />
         <footer
           className="brand-footer-card chapter-card"
-          inert={openingState !== "opened"}
+          inert={openingState !== "opened" || isRsvpPopupOpen}
         >
           <img
             className="brand-footer-logo"
@@ -170,7 +305,16 @@ function App() {
           </a>
         </footer>
       </main>
+      {isRsvpPopupOpen && <RsvpPopup onClose={closeRsvpPopup} />}
     </>
+  );
+}
+
+function App() {
+  return (
+    <RsvpProvider>
+      <InvitationExperience />
+    </RsvpProvider>
   );
 }
 

@@ -2415,6 +2415,9 @@ footer > * {
   flex-direction: column;
   align-items: center;
 }
+.wedding-day-event + .wedding-day-event {
+  margin-top: clamp(56px, 8vw, 80px);
+}
 .wedding-day-illustration {
   display: block;
   width: clamp(190px, 28vw, 250px);
@@ -2477,28 +2480,6 @@ footer > * {
   height: 13px;
   stroke: currentColor;
   stroke-width: 1.2;
-}
-.wedding-day-divider {
-  display: flex;
-  width: min(100%, 390px);
-  justify-content: center;
-  margin: clamp(28px, 4vw, 40px) auto;
-}
-.wedding-day-divider img {
-  display: block;
-  width: min(100%, 340px);
-  height: auto;
-  object-fit: contain;
-  animation: wedding-day-divider-pulse 3.2s ease-in-out infinite;
-}
-@keyframes wedding-day-divider-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.035);
-  }
 }
 .wedding-day-arrival {
   display: flex;
@@ -2570,8 +2551,8 @@ footer > * {
   .wedding-day-program {
     margin-top: 30px;
   }
-  .wedding-day-divider {
-    margin: 26px auto;
+  .wedding-day-event + .wedding-day-event {
+    margin-top: 52px;
   }
   .wedding-day-address {
     max-width: 290px;
@@ -2598,9 +2579,6 @@ footer > * {
     opacity: 1;
     transform: none;
     transition: none;
-  }
-  .wedding-day-divider img {
-    animation: none;
   }
   .entourage-dust-speck {
     opacity: 0.14;
@@ -3761,6 +3739,31 @@ footer > * {
 .rsvp-redesign .rsvp-message.is-loading {
   color: #687986;
 }
+.rsvp-thank-you {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  margin: 32px auto 0;
+  text-align: center;
+}
+.rsvp-thank-you .rsvp-flourish {
+  margin: 0;
+}
+.rsvp-thank-you h3 {
+  margin: 0;
+  color: #294e65;
+  font: 400 clamp(32px, 4vw, 44px) / 1.2 var(--display);
+}
+.rsvp-thank-you p {
+  max-width: 440px;
+  margin: 0;
+  color: #687986;
+  font: 16px / 1.7 var(--serif);
+}
+.rsvp-thank-you .submit-rsvp {
+  max-width: 360px;
+  margin-top: 8px;
+}
 .rsvp-redesign .submit-rsvp:disabled {
   cursor: wait;
   opacity: 0.72;
@@ -3850,6 +3853,67 @@ footer > * {
     width: calc(100% + 20px);
     margin-inline: -10px;
   }
+}
+.rsvp-popup-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.rsvp-popup-backdrop {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(12px, env(safe-area-inset-top)) 12px
+    max(12px, env(safe-area-inset-bottom));
+  background: rgba(18, 34, 47, 0.72);
+  backdrop-filter: blur(3px);
+}
+.rsvp-popup-dialog {
+  display: grid;
+  width: min(680px, 100%);
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  grid-template-rows: 48px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #c5d1d6;
+  background: #f9f7f0;
+  box-shadow: 0 24px 90px rgba(12, 25, 37, 0.34);
+}
+.rsvp-popup-close {
+  position: relative;
+  z-index: 1;
+  justify-self: end;
+  min-width: 76px;
+  min-height: 44px;
+  margin: 2px 10px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: #294e65;
+  font: 600 10px / 1.2 "DM Sans", sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.rsvp-popup-close span {
+  margin-left: 5px;
+  color: #b49a6d;
+  font: 20px / 0.8 var(--serif);
+  vertical-align: -1px;
+}
+.rsvp-popup-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.rsvp-section.chapter-card.rsvp-redesign.rsvp-popup-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  padding-top: 30px;
 }
 @media (min-width: 801px) {
   .invitation-flow > .chapter-card {
