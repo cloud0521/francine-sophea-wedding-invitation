@@ -1563,6 +1563,7 @@ footer > * {
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: clip;
   gap: clamp(80px, 8vw, 100px);
   padding: clamp(28px, 5vw, 72px) 24px;
   background: var(--cream);
@@ -2007,7 +2008,7 @@ footer > * {
 .details.chapter-card.wedding-day-card > .wedding-day-vine {
   position: absolute;
   z-index: 0;
-  right: -24px;
+  right: -14px;
   bottom: -22px;
   width: clamp(78px, 12vw, 138px);
   height: auto;
@@ -2288,7 +2289,7 @@ footer > * {
     max-height: 30%;
   }
   .details.chapter-card.wedding-day-card > .wedding-day-vine:not(.wedding-day-vine-top-left) {
-    right: -22px;
+    right: -4px;
     bottom: -20px;
     width: 190px;
     max-height: 48%;
