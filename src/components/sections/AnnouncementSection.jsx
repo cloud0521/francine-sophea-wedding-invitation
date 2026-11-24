@@ -12,6 +12,9 @@ function AnnouncementSection() {
           className="hero-image"
           src={image("2")}
           alt="Sophea and Francine laughing together in an open field"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
         />
         <div className="hero-photo-wash" />
       </div>

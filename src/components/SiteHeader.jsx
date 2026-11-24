@@ -2,15 +2,15 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { image } from "../data/weddingContent.js";
 
-function SiteHeader() {
+function SiteHeader({ inert = false }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <header className="site-header">
+    <header className="site-header" inert={inert}>
       <a className="wordmark" href="#home" onClick={closeMenu}>
-        <img className="brand-monogram" src={image("sandf")} alt="" />
+        <img className="brand-monogram" src={image("logo")} alt="" />
         <span className="wordmark-names">
           SOPHEA <i>&</i> FRANCINE DALE
         </span>

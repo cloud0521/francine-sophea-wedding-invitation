@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { observeElementsAtHalfVisibility } from "../../utils/observeElementsAtHalfVisibility.js";
 
 const imageBase = `${import.meta.env.BASE_URL}images/`;
 
@@ -40,12 +41,14 @@ function AttireSection() {
     if (!section) return undefined;
 
     const revealItems = section.querySelectorAll(".attire-reveal");
+    const manikins = section.querySelectorAll(".attire-manikin");
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
     if (prefersReducedMotion || !("IntersectionObserver" in window)) {
       revealItems.forEach((item) => item.classList.add("is-revealed"));
+      manikins.forEach((manikin) => manikin.classList.add("is-visible"));
       return undefined;
     }
 
@@ -61,7 +64,12 @@ function AttireSection() {
     );
 
     revealItems.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
+    const stopObservingManikins = observeElementsAtHalfVisibility(manikins);
+
+    return () => {
+      observer.disconnect();
+      stopObservingManikins();
+    };
   }, []);
 
   return (
@@ -92,7 +100,7 @@ function AttireSection() {
         />
 
         <img
-          className="attire-illustration attire-reveal"
+          className="attire-illustration attire-manikin attire-manikin-from-left"
           src={`${imageBase}guestAttire-cutout.png`}
           alt="Four illustrated guest attire examples in blue and neutral tones"
           loading="lazy"
@@ -121,7 +129,7 @@ function AttireSection() {
         />
 
         <img
-          className="attire-illustration attire-reveal"
+          className="attire-illustration attire-manikin attire-manikin-from-right"
           src={`${imageBase}entourageAttire-cutout.png`}
           alt="Four illustrated wedding entourage attire examples in beige and dusty blue"
           loading="lazy"

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import NotesFlowerField from "../NotesFlowerField";
 
 const faqItems = [
   {
@@ -173,6 +174,7 @@ function NotesSection() {
       className="notes-chapter chapter-card thoughtful-notes"
       aria-label="Wedding Notes"
     >
+      <NotesFlowerField />
       <header className="notes-header notes-reveal">
         <NotesFlourish />
         <h2>Thoughtful Notes</h2>

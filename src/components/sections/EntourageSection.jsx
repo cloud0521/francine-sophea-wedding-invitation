@@ -1,5 +1,8 @@
 import { useEffect, useRef } from "react";
-import { entourageGroups } from "../../data/weddingContent.js";
+import { entourageGroups, image } from "../../data/weddingContent.js";
+import { observeElementsAtHalfVisibility } from "../../utils/observeElementsAtHalfVisibility.js";
+
+const cornerFlower = image("webp/flowers/f1");
 
 const dustSpecks = [
   [8, 18, 0, 8], [22, 34, 2.4, 10], [90, 20, 1.2, 9], [96, 42, 4.1, 11],
@@ -84,20 +87,33 @@ function EntourageSection() {
 
     if (prefersReducedMotion || !("IntersectionObserver" in window)) {
       revealGroups.forEach((group) => group.classList.add("is-revealed"));
+      section
+        .querySelectorAll(".entourage-flower-corner")
+        .forEach((flower) => flower.classList.add("is-visible"));
       return undefined;
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          entry.target.classList.toggle("is-revealed", entry.isIntersecting);
+          if (!entry.isIntersecting) return;
+
+          entry.target.classList.add("is-revealed");
+          observer.unobserve(entry.target);
         });
       },
       { threshold: 0 },
     );
 
     revealGroups.forEach((group) => observer.observe(group));
-    return () => observer.disconnect();
+    const stopObservingFlowers = observeElementsAtHalfVisibility(
+      section.querySelectorAll(".entourage-flower-corner"),
+    );
+
+    return () => {
+      observer.disconnect();
+      stopObservingFlowers();
+    };
   }, []);
 
   useEffect(() => {
@@ -159,6 +175,12 @@ function EntourageSection() {
       id="entourage"
       aria-label="Wedding Entourage"
     >
+      <div className="entourage-floral-corners" aria-hidden="true">
+        <img className="entourage-flower-corner top-left" src={cornerFlower} alt="" />
+        <img className="entourage-flower-corner top-right" src={cornerFlower} alt="" />
+        <img className="entourage-flower-corner bottom-left" src={cornerFlower} alt="" />
+        <img className="entourage-flower-corner bottom-right" src={cornerFlower} alt="" />
+      </div>
       <div className="entourage-dust-field" aria-hidden="true">
         {dustSpecks.map(([x, y, delay, duration], index) => (
           <span
@@ -174,9 +196,6 @@ function EntourageSection() {
         ))}
       </div>
       <header className="entourage-editorial-heading entourage-reveal">
-        <span className="entourage-ornament" aria-hidden="true">
-          <span />
-        </span>
         <h2>Our Entourage</h2>
         <p>The beautiful souls who stand beside us.</p>
       </header>

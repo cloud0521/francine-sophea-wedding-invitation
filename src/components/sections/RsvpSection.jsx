@@ -1,21 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function EnvelopeIllustration() {
   return (
-    <svg
+    <img
       className="rsvp-envelope"
-      viewBox="0 0 160 118"
-      fill="none"
+      src={`${import.meta.env.BASE_URL}images/rsvp-floral-envelope.webp`}
+      alt=""
       aria-hidden="true"
-    >
-      <path d="M35 27h90v67H35z" fill="#fffdf8" stroke="currentColor" />
-      <path d="M43 19h90v67H43z" fill="#f9f7f0" stroke="currentColor" />
-      <path d="M24 38h112v63H24z" fill="#f9f7f0" stroke="currentColor" />
-      <path d="m25 40 55 39 55-39M25 100l39-31m71 31L96 69" stroke="currentColor" />
-      <path d="m80 70 11 8-11 8-11-8 11-8Z" fill="#b49a6d" stroke="#b49a6d" />
-      <path d="M77 79c-5-4-1-8 3-4 4-4 8 0 3 4l-3 3-3-3Z" fill="#f9f7f0" />
-      <path d="M42 30h77" stroke="#b49a6d" strokeWidth="1.2" />
-    </svg>
+    />
   );
 }
 
@@ -51,21 +43,42 @@ function AttendanceIcon({ type }) {
   );
 }
 
-function RsvpSection({
-  guestName,
-  response,
-  message,
-  onGuestNameChange,
-  onResponseChange,
-  onSubmit,
-}) {
+function createRequestId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, "0"));
+  return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex
+    .slice(6, 8)
+    .join("")}-${hex.slice(8, 10).join("")}-${hex
+    .slice(10, 16)
+    .join("")}`;
+}
+
+function RsvpSection() {
   const sectionRef = useRef(null);
+  const requestIdRef = useRef("");
+  const requestFingerprintRef = useRef("");
+  const [guestCount, setGuestCount] = useState(1);
+  const [guestNames, setGuestNames] = useState([""]);
+  const [enteringGuests, setEnteringGuests] = useState([]);
+  const [response, setResponse] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return undefined;
 
-    const revealGroups = section.querySelectorAll(".rsvp-reveal");
+    const revealGroups = section.querySelectorAll(
+      ".rsvp-reveal:not(.is-revealed)",
+    );
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -88,7 +101,143 @@ function RsvpSection({
 
     revealGroups.forEach((group) => observer.observe(group));
     return () => observer.disconnect();
-  }, []);
+  }, [guestCount]);
+
+  useEffect(() => {
+    if (enteringGuests.length === 0) return undefined;
+    const timeout = window.setTimeout(() => setEnteringGuests([]), 600);
+    return () => window.clearTimeout(timeout);
+  }, [enteringGuests]);
+
+  const handleGuestCountChange = (event) => {
+    const nextCount = Number(event.target.value);
+
+    if (nextCount > guestCount) {
+      setEnteringGuests(
+        Array.from(
+          { length: nextCount - guestCount },
+          (_, index) => guestCount + index,
+        ),
+      );
+    } else {
+      setEnteringGuests([]);
+    }
+
+    setGuestCount(nextCount);
+    setFeedback(null);
+  };
+
+  const handleGuestNameChange = (index, value) => {
+    setGuestNames((currentNames) => {
+      const nextNames = [...currentNames];
+      nextNames[index] = value;
+      return nextNames;
+    });
+    setFeedback(null);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (isSubmitting || feedback?.type === "success") return;
+
+    const normalizedNames = guestNames
+      .slice(0, guestCount)
+      .map((name) => name.trim().replace(/\s+/g, " "));
+
+    if (normalizedNames.some((name) => name.length === 0)) {
+      setFeedback({
+        type: "error",
+        text: "Please enter the full name of every invited guest.",
+      });
+      return;
+    }
+
+    if (normalizedNames.some((name) => name.length > 100)) {
+      setFeedback({
+        type: "error",
+        text: "Each guest name must be 100 characters or fewer.",
+      });
+      return;
+    }
+
+    const uniqueNames = new Set(
+      normalizedNames.map((name) => name.toLocaleLowerCase()),
+    );
+    if (uniqueNames.size !== normalizedNames.length) {
+      setFeedback({
+        type: "error",
+        text: "Please remove duplicate names before sending your RSVP.",
+      });
+      return;
+    }
+
+    if (!response) {
+      setFeedback({
+        type: "error",
+        text: "Please choose whether you will be joining us.",
+      });
+      return;
+    }
+
+    setGuestNames((currentNames) =>
+      currentNames.map((name, index) =>
+        index < guestCount ? normalizedNames[index] : name,
+      ),
+    );
+
+    const requestFingerprint = JSON.stringify([normalizedNames, response]);
+    if (requestFingerprintRef.current !== requestFingerprint) {
+      requestIdRef.current = createRequestId();
+      requestFingerprintRef.current = requestFingerprint;
+    }
+    setIsSubmitting(true);
+    setFeedback({ type: "loading", text: "Sending your RSVP…" });
+
+    try {
+      const result = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId: requestIdRef.current,
+          guestNames: normalizedNames,
+          attendance: response,
+          website: "",
+        }),
+      });
+
+      let payload;
+      try {
+        payload = await result.json();
+      } catch {
+        throw new Error("We could not read the RSVP service response.");
+      }
+
+      if (!result.ok || !payload.ok) {
+        throw new Error(
+          payload.message || "Your RSVP could not be saved. Please try again.",
+        );
+      }
+
+      requestIdRef.current = "";
+      requestFingerprintRef.current = "";
+      setFeedback({
+        type: "success",
+        text: `Thank you. Your RSVP for ${normalizedNames.join(
+          normalizedNames.length > 2 ? ", " : " and ",
+        )} has been received.`,
+      });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Your RSVP could not be saved. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <section
@@ -109,42 +258,109 @@ function RsvpSection({
           <RsvpFlourish />
         </div>
 
-        <form onSubmit={onSubmit} className="rsvp-form">
-          <div className="rsvp-name-field rsvp-reveal">
-            <label htmlFor="guest-name">Your full name</label>
-            <input
-              id="guest-name"
-              name="guestName"
-              autoComplete="name"
-              value={guestName}
-              onChange={(event) => onGuestNameChange(event.target.value)}
-              placeholder="Enter your full name"
-              required
-            />
+        <form onSubmit={handleSubmit} className="rsvp-form">
+          <div
+            className="rsvp-guest-count rsvp-reveal"
+          >
+            <label htmlFor="guest-count">Number of Guests</label>
+            <select
+              id="guest-count"
+              name="guestCount"
+              value={guestCount}
+              onChange={handleGuestCountChange}
+              disabled={isSubmitting || feedback?.type === "success"}
+            >
+              {[1, 2, 3, 4, 5].map((count) => (
+                <option key={count} value={count}>
+                  {count} {count === 1 ? "Guest" : "Guests"}
+                </option>
+              ))}
+            </select>
+            <p className="rsvp-guest-reminder">
+              Please include only the guests named in your invitation.
+            </p>
           </div>
 
-          <fieldset className="rsvp-attendance rsvp-reveal">
+          <div className="rsvp-guest-fields">
+            {Array.from({ length: guestCount }, (_, index) => (
+              <div
+                className={`rsvp-name-field rsvp-reveal${
+                  enteringGuests.includes(index) ? " is-entering" : ""
+                }`}
+                key={index}
+              >
+                <label htmlFor={`guest-name-${index + 1}`}>
+                  {guestCount === 1
+                    ? "Your full name"
+                    : `Guest ${index + 1} — Full Name`}
+                </label>
+                <input
+                  id={`guest-name-${index + 1}`}
+                  name={`guestName${index + 1}`}
+                  autoComplete={index === 0 ? "name" : "off"}
+                  value={guestNames[index] ?? ""}
+                  onChange={(event) =>
+                    handleGuestNameChange(index, event.target.value)
+                  }
+                  placeholder="Enter full name"
+                  maxLength={100}
+                  required
+                  disabled={isSubmitting || feedback?.type === "success"}
+                />
+              </div>
+            ))}
+          </div>
+
+          <input
+            className="rsvp-honeypot"
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
+
+          <fieldset
+            className="rsvp-attendance rsvp-reveal"
+            disabled={isSubmitting || feedback?.type === "success"}
+          >
             <legend>Will you be joining us?</legend>
-            <label className={`rsvp-option${response === "accept" ? " is-selected" : ""}`}>
+            <label
+              className={`rsvp-option${
+                response === "accept" ? " is-selected" : ""
+              }`}
+            >
               <input
                 type="radio"
                 name="attendance"
                 value="accept"
                 checked={response === "accept"}
-                onChange={(event) => onResponseChange(event.target.value)}
+                onChange={(event) => {
+                  setResponse(event.target.value);
+                  setFeedback(null);
+                }}
+                disabled={feedback?.type === "success"}
                 required
               />
               <AttendanceIcon type="accept" />
               <span>Joyfully accepts</span>
               <span className="rsvp-radio-mark" aria-hidden="true" />
             </label>
-            <label className={`rsvp-option${response === "decline" ? " is-selected" : ""}`}>
+            <label
+              className={`rsvp-option${
+                response === "decline" ? " is-selected" : ""
+              }`}
+            >
               <input
                 type="radio"
                 name="attendance"
                 value="decline"
                 checked={response === "decline"}
-                onChange={(event) => onResponseChange(event.target.value)}
+                onChange={(event) => {
+                  setResponse(event.target.value);
+                  setFeedback(null);
+                }}
+                disabled={feedback?.type === "success"}
               />
               <AttendanceIcon type="decline" />
               <span>Regretfully declines</span>
@@ -152,13 +368,24 @@ function RsvpSection({
             </label>
           </fieldset>
 
-          <div className="rsvp-submit-group rsvp-reveal">
-            <button type="submit" className="submit-rsvp">
-              Send my RSVP
+          <div
+            className="rsvp-submit-group rsvp-reveal"
+          >
+            <button
+              type="submit"
+              className="submit-rsvp"
+              disabled={isSubmitting || feedback?.type === "success"}
+              aria-busy={isSubmitting}
+            >
+              {isSubmitting ? "Sending…" : "Send my RSVP"}
             </button>
-            {message && (
-              <p className="rsvp-message" role="status">
-                {message} No reply has been sent yet.
+            {feedback && (
+              <p
+                className={`rsvp-message is-${feedback.type}`}
+                role={feedback.type === "error" ? "alert" : "status"}
+                aria-live="polite"
+              >
+                {feedback.text}
               </p>
             )}
             <p className="rsvp-reminder">

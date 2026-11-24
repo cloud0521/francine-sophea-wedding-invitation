@@ -1,43 +1,8 @@
 import { useEffect, useRef } from "react";
+import { image } from "../../data/weddingContent.js";
+import { observeElementsAtHalfVisibility } from "../../utils/observeElementsAtHalfVisibility.js";
 
 const cornerFlower = `${import.meta.env.BASE_URL}images/cornerflower22.png`;
-
-function ChurchIllustration() {
-  return (
-    <svg
-      className="wedding-day-illustration"
-      viewBox="0 0 180 120"
-      fill="none"
-      aria-hidden="true"
-    >
-      <g stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M28 101h124M39 101V56l51-31 51 31v45M55 101V67h70v34" />
-        <path d="M77 101V77a13 13 0 0 1 26 0v24M90 25V10m-7 7h14M51 57h78M69 56V44h12v12m18 0V44h12v12" />
-        <path d="M35 101v-8m110 8v-8M21 101h138" />
-      </g>
-      <path d="M86 17h8M88 13h4" stroke="var(--wedding-champagne)" strokeWidth="1.4" strokeLinecap="round" />
-      <circle cx="90" cy="72" r="2" fill="var(--wedding-champagne)" />
-    </svg>
-  );
-}
-
-function ChampagneIllustration() {
-  return (
-    <svg
-      className="wedding-day-illustration reception-illustration"
-      viewBox="0 0 180 120"
-      fill="none"
-      aria-hidden="true"
-    >
-      <g stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m56 26 8 37c2 10 10 16 20 16h5c10 0 18-6 20-16l8-37M56 26h61M90 79v23m-15 0h30M90 79l-25-22m25 22 25-22" />
-        <path d="m48 33 7 32c2 10 10 16 20 16h3m-30-48h12m65-7-8 37c-2 10-10 16-20 16h-3m31-48h-12" opacity=".45" />
-        <path d="M63 49h49M58 49h12m48 0h-12" />
-      </g>
-      <path d="m87 73 3-4 3 4-3 4-3-4Z" fill="var(--wedding-champagne)" />
-    </svg>
-  );
-}
 
 function MapPin() {
   return (
@@ -96,6 +61,9 @@ function DetailsSection() {
 
     if (prefersReducedMotion || !("IntersectionObserver" in window)) {
       revealGroups.forEach((group) => group.classList.add("is-revealed"));
+      section
+        .querySelectorAll(".wedding-day-vine")
+        .forEach((flower) => flower.classList.add("is-visible"));
       return undefined;
     }
 
@@ -109,7 +77,14 @@ function DetailsSection() {
     );
 
     revealGroups.forEach((group) => observer.observe(group));
-    return () => observer.disconnect();
+    const stopObservingFlowers = observeElementsAtHalfVisibility(
+      section.querySelectorAll(".wedding-day-vine"),
+    );
+
+    return () => {
+      observer.disconnect();
+      stopObservingFlowers();
+    };
   }, []);
 
   return (
@@ -145,16 +120,26 @@ function DetailsSection() {
 
       <div className="wedding-day-program">
         <div className="wedding-day-event wedding-day-reveal">
-          <ChurchIllustration />
+          <img
+            className="wedding-day-illustration"
+            src={image("wedding-chapel-sketch")}
+            alt=""
+            aria-hidden="true"
+          />
           <EventDetails />
         </div>
 
         <div className="wedding-day-divider" aria-hidden="true">
-          <span />
+          <img src={image("seperator")} alt="" />
         </div>
 
         <div className="wedding-day-event wedding-day-reveal">
-          <ChampagneIllustration />
+          <img
+            className="wedding-day-illustration reception-illustration"
+            src={image("wedding-reception-glass")}
+            alt=""
+            aria-hidden="true"
+          />
           <EventDetails reception />
         </div>
       </div>
