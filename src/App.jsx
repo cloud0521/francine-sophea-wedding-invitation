@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AnnouncementSection from "./components/sections/AnnouncementSection.jsx";
 import AttireSection from "./components/sections/AttireSection.jsx";
 import CountdownSection from "./components/sections/CountdownSection.jsx";
@@ -18,6 +18,33 @@ function App() {
   const [response, setResponse] = useState("");
   const [guestName, setGuestName] = useState("");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (opened) return undefined;
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const previousStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+    body.style.overflow = "hidden";
+
+    return () => {
+      Object.assign(body.style, previousStyles);
+      window.scrollTo(0, scrollY);
+    };
+  }, [opened]);
 
   const handleRsvpSubmit = (event) => {
     event.preventDefault();
