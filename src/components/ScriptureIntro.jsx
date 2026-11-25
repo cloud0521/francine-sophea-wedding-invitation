@@ -6,8 +6,6 @@ const landingBase = `${assetBase}landing/`;
 const bibleImage = `${assetBase}open-bible.webp`;
 
 const essentialImages = [
-  `${assetBase}bgmobile.webp`,
-  `${assetBase}bgdesktop.webp`,
   `${assetBase}logo.webp`,
   `${landingBase}c1.webp`,
   `${landingBase}c2.webp`,
@@ -75,36 +73,7 @@ function preloadFonts() {
   ).then(() => true);
 }
 
-function preloadAudioMetadata(audio, cleanupCallbacks) {
-  if (!audio || audio.readyState >= 1) return Promise.resolve(true);
-
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (loaded) => {
-      if (settled) return;
-      settled = true;
-      window.clearTimeout(timeoutId);
-      audio.removeEventListener("loadedmetadata", handleReady);
-      audio.removeEventListener("error", handleError);
-      resolve(loaded);
-    };
-    const handleReady = () => finish(true);
-    const handleError = () => finish(false);
-    const timeoutId = window.setTimeout(() => finish(false), 2500);
-
-    audio.preload = "metadata";
-    audio.addEventListener("loadedmetadata", handleReady, { once: true });
-    audio.addEventListener("error", handleError, { once: true });
-    cleanupCallbacks.push(() => {
-      window.clearTimeout(timeoutId);
-      audio.removeEventListener("loadedmetadata", handleReady);
-      audio.removeEventListener("error", handleError);
-    });
-    audio.load();
-  });
-}
-
-function ScriptureIntro({ audioRef, onTransitionStart, onComplete }) {
+function ScriptureIntro({ onTransitionStart, onComplete }) {
   const [isLeaving, setIsLeaving] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -128,7 +97,10 @@ function ScriptureIntro({ audioRef, onTransitionStart, onComplete }) {
       if (!cancelled) setProgress(completedAssets / totalAssets);
     };
 
-    const imageTasks = essentialImages.map((url) =>
+    const activeBackground = window.matchMedia("(max-width: 800px)").matches
+      ? `${assetBase}bgmobile.webp`
+      : `${assetBase}bgdesktop.webp`;
+    const imageTasks = [activeBackground, ...essentialImages].map((url) =>
       preloadImage(url, cleanupCallbacks).then((loaded) => {
         markAssetReady();
         return loaded;
@@ -138,18 +110,7 @@ function ScriptureIntro({ audioRef, onTransitionStart, onComplete }) {
       markAssetReady();
       return loaded;
     });
-    const audioTask = preloadAudioMetadata(
-      audioRef?.current,
-      cleanupCallbacks,
-    ).then((loaded) => {
-      markAssetReady();
-      return loaded;
-    });
-    const allAssetsReady = Promise.all([
-      ...imageTasks,
-      fontTask,
-      audioTask,
-    ]);
+    const allAssetsReady = Promise.all([...imageTasks, fontTask]);
     const maximumWaitReached = new Promise((resolve) => {
       deadlineTimer = window.setTimeout(
         () => resolve(false),
@@ -177,7 +138,7 @@ function ScriptureIntro({ audioRef, onTransitionStart, onComplete }) {
       window.clearTimeout(transitionTimer);
       cleanupCallbacks.forEach((cleanup) => cleanup());
     };
-  }, [audioRef, onComplete, onTransitionStart]);
+  }, [onComplete, onTransitionStart]);
 
   return (
     <div

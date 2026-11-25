@@ -312,6 +312,15 @@ function InvitationExperience() {
     setHasDismissedRsvpPopup(true);
   }, []);
 
+  useEffect(() => {
+    if (!isRsvpPopupOpen || feedback?.type !== "success") {
+      return undefined;
+    }
+
+    const closeTimer = window.setTimeout(closeRsvpPopup, 3000);
+    return () => window.clearTimeout(closeTimer);
+  }, [closeRsvpPopup, feedback?.type, isRsvpPopupOpen]);
+
   const beginLandingReveal = useCallback(() => {
     setHasLandingStarted(true);
   }, []);
@@ -331,7 +340,6 @@ function InvitationExperience() {
       />
       {showScriptureIntro && (
         <ScriptureIntro
-          audioRef={backgroundMusicRef}
           onTransitionStart={beginLandingReveal}
           onComplete={finishScriptureIntro}
         />

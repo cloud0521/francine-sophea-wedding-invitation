@@ -191,11 +191,14 @@ export function RsvpProvider({ children }) {
     }
     setIsSubmitting(true);
     setFeedback({ type: "loading", text: "Sending your RSVP…" });
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
 
     try {
       const result = await fetch("/api/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           requestId: requestIdRef.current,
           guestNames: normalizedNames,
@@ -230,11 +233,14 @@ export function RsvpProvider({ children }) {
       setFeedback({
         type: "error",
         text:
-          error instanceof Error
+          error?.name === "AbortError"
+            ? "The RSVP service took too long to respond. Please try again."
+            : error instanceof Error
             ? error.message
             : "Your RSVP could not be saved. Please try again.",
       });
     } finally {
+      window.clearTimeout(timeoutId);
       setIsSubmitting(false);
     }
   };
