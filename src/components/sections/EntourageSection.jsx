@@ -156,17 +156,17 @@ function EntourageSection() {
   const parents = getPeople("Parents");
   const sponsorNames = getPeople("Principal Sponsors");
   const sponsorRows = [
-    ...Array.from({ length: 17 }, (_, index) =>
+    ...Array.from({ length: 18 }, (_, index) =>
       sponsorNames.slice(index * 2, index * 2 + 2),
     ),
-    sponsorNames.slice(34, 37),
-    sponsorNames.slice(37, 40),
-    sponsorNames.slice(40, 43),
-    sponsorNames.slice(43, 46),
-    sponsorNames.slice(46, 48),
-    sponsorNames.slice(48, 49),
-    sponsorNames.slice(49, 51),
-    sponsorNames.slice(51),
+    sponsorNames.slice(36, 39),
+    sponsorNames.slice(39, 42),
+    sponsorNames.slice(42, 45),
+    sponsorNames.slice(45, 48),
+    sponsorNames.slice(48, 50),
+    sponsorNames.slice(50, 51),
+    sponsorNames.slice(51, 53),
+    sponsorNames.slice(53, 55),
   ].filter((row) => row.length > 0);
 
   return (
@@ -210,8 +210,8 @@ function EntourageSection() {
       </header>
 
       <EntourageGroup
-        title="Officiating Priest"
-        people={getPeople("Officiating Priest")}
+        title="Officiating Priests"
+        people={getPeople("Officiating Priests")}
         className="entourage-priest"
       />
       <PairedGroups
@@ -253,7 +253,7 @@ function EntourageSection() {
             <ul
               className={`entourage-principal-row${
                 row.length === 3 ? " has-three-columns" : ""
-              }`}
+              }${row.length === 1 ? " is-single-column" : ""}`}
               key={`sponsor-row-${index}`}
               style={{ "--sponsor-columns": row.length }}
             >

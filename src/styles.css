@@ -2933,6 +2933,10 @@ footer > * {
 .entourage-principal-row li {
   font-size: 14px;
 }
+.entourage-principal-row.is-single-column {
+  grid-template-columns: 1fr;
+  text-align: center;
+}
 .entourage-closing {
   margin: 0;
   color: #294e65;
