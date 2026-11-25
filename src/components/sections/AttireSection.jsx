@@ -75,6 +75,7 @@ function AttireSection() {
   return (
     <section
       ref={sectionRef}
+      id="attire"
       className="attire chapter-card attire-guide"
       aria-label="Attire Guide"
       style={{ "--attire-background-image": `url("${imageBase}bg_attire.webp")` }}

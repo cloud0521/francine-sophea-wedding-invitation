@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import Countdown from "../Countdown.jsx";
-import { observeElementsAtHalfVisibility } from "../../utils/observeElementsAtHalfVisibility.js";
+import { observeCornerFlowers } from "../../utils/observeElementsAtHalfVisibility.js";
 
 function CountdownSection() {
   const flowerRefs = useRef([]);
 
   useEffect(() => {
-    return observeElementsAtHalfVisibility(
+    return observeCornerFlowers(
       flowerRefs.current.filter(Boolean),
     );
   }, []);
@@ -18,22 +18,30 @@ function CountdownSection() {
       aria-label="Countdown to Forever"
     >
       <div className="countdown-flower-field" aria-hidden="true">
-        <img
+        <span
           ref={(element) => {
             flowerRefs.current[0] = element;
           }}
           className="countdown-corner-flower top-right"
-          src={`${import.meta.env.BASE_URL}images/cornerflower1.webp`}
-          alt=""
-        />
-        <img
+        >
+          <img
+            className="countdown-corner-flower-image"
+            src={`${import.meta.env.BASE_URL}images/cornerflower1.webp`}
+            alt=""
+          />
+        </span>
+        <span
           ref={(element) => {
             flowerRefs.current[1] = element;
           }}
           className="countdown-corner-flower bottom-left"
-          src={`${import.meta.env.BASE_URL}images/cornerflower1.webp`}
-          alt=""
-        />
+        >
+          <img
+            className="countdown-corner-flower-image"
+            src={`${import.meta.env.BASE_URL}images/cornerflower1.webp`}
+            alt=""
+          />
+        </span>
       </div>
       <h2>
         <span className="countdown-title-lead">Counting down to</span>

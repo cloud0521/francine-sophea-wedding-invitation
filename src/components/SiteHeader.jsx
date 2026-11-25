@@ -27,14 +27,18 @@ function SiteHeader({ inert = false }) {
         aria-label="Main navigation"
         onClick={closeMenu}
       >
+        <a href="#home">Announcement</a>
         <a href="#countdown">Countdown</a>
         <a href="#story">Our story</a>
         <a href="#gallery">Gallery</a>
         <a href="#details">The day</a>
         <a href="#entourage">Entourage</a>
+        <a href="#attire">Dress code</a>
+        <a href="#notes">Notes</a>
         <a href="#rsvp" className="nav-rsvp">
           RSVP
         </a>
+        <a href="#thank-you">Thank you</a>
       </nav>
     </header>
   );

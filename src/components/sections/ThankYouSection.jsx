@@ -2,7 +2,11 @@ import { image } from "../../data/weddingContent.js";
 
 function ThankYouSection() {
   return (
-    <section className="closing chapter-card" aria-label="Thank You">
+    <section
+      id="thank-you"
+      className="closing chapter-card"
+      aria-label="Thank You"
+    >
       <img src={image("5")} alt="Sophea and Francine walking together" />
       <div className="closing-overlay" />
       <div className="closing-copy">

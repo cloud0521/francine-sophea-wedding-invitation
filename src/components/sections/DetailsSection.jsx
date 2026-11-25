@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { image } from "../../data/weddingContent.js";
-import { observeElementsAtHalfVisibility } from "../../utils/observeElementsAtHalfVisibility.js";
+import { observeCornerFlowers } from "../../utils/observeElementsAtHalfVisibility.js";
 
 const cornerFlower = `${import.meta.env.BASE_URL}images/cornerflower22.png`;
 
@@ -62,7 +62,7 @@ function DetailsSection() {
     if (prefersReducedMotion || !("IntersectionObserver" in window)) {
       revealGroups.forEach((group) => group.classList.add("is-revealed"));
       section
-        .querySelectorAll(".wedding-day-vine")
+        .querySelectorAll(".wedding-day-vine-wrap")
         .forEach((flower) => flower.classList.add("is-visible"));
       return undefined;
     }
@@ -77,8 +77,8 @@ function DetailsSection() {
     );
 
     revealGroups.forEach((group) => observer.observe(group));
-    const stopObservingFlowers = observeElementsAtHalfVisibility(
-      section.querySelectorAll(".wedding-day-vine"),
+    const stopObservingFlowers = observeCornerFlowers(
+      section.querySelectorAll(".wedding-day-vine-wrap"),
     );
 
     return () => {
@@ -94,18 +94,15 @@ function DetailsSection() {
       id="details"
       aria-label="Wedding Details"
     >
-      <img
-        className="wedding-day-vine"
-        src={cornerFlower}
-        alt=""
+      <span className="wedding-day-vine-wrap" aria-hidden="true">
+        <img className="wedding-day-vine" src={cornerFlower} alt="" />
+      </span>
+      <span
+        className="wedding-day-vine-wrap wedding-day-vine-top-left"
         aria-hidden="true"
-      />
-      <img
-        className="wedding-day-vine wedding-day-vine-top-left"
-        src={cornerFlower}
-        alt=""
-        aria-hidden="true"
-      />
+      >
+        <img className="wedding-day-vine" src={cornerFlower} alt="" />
+      </span>
       <header className="wedding-day-header wedding-day-reveal">
         <span className="wedding-day-ornament" aria-hidden="true">
           <span />

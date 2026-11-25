@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { entourageGroups, image } from "../../data/weddingContent.js";
-import { observeElementsAtHalfVisibility } from "../../utils/observeElementsAtHalfVisibility.js";
+import { observeCornerFlowers } from "../../utils/observeElementsAtHalfVisibility.js";
 
 const cornerFlower = image("webp/flowers/f1");
 
@@ -88,7 +88,7 @@ function EntourageSection() {
     if (prefersReducedMotion || !("IntersectionObserver" in window)) {
       revealGroups.forEach((group) => group.classList.add("is-revealed"));
       section
-        .querySelectorAll(".entourage-flower-corner")
+        .querySelectorAll(".entourage-flower-corner-wrap")
         .forEach((flower) => flower.classList.add("is-visible"));
       return undefined;
     }
@@ -106,8 +106,8 @@ function EntourageSection() {
     );
 
     revealGroups.forEach((group) => observer.observe(group));
-    const stopObservingFlowers = observeElementsAtHalfVisibility(
-      section.querySelectorAll(".entourage-flower-corner"),
+    const stopObservingFlowers = observeCornerFlowers(
+      section.querySelectorAll(".entourage-flower-corner-wrap"),
     );
 
     return () => {
@@ -164,8 +164,9 @@ function EntourageSection() {
     sponsorNames.slice(40, 43),
     sponsorNames.slice(43, 46),
     sponsorNames.slice(46, 48),
-    sponsorNames.slice(48, 50),
-    sponsorNames.slice(50, 52),
+    sponsorNames.slice(48, 49),
+    sponsorNames.slice(49, 51),
+    sponsorNames.slice(51),
   ].filter((row) => row.length > 0);
 
   return (
@@ -176,10 +177,18 @@ function EntourageSection() {
       aria-label="Wedding Entourage"
     >
       <div className="entourage-floral-corners" aria-hidden="true">
-        <img className="entourage-flower-corner top-left" src={cornerFlower} alt="" />
-        <img className="entourage-flower-corner top-right" src={cornerFlower} alt="" />
-        <img className="entourage-flower-corner bottom-left" src={cornerFlower} alt="" />
-        <img className="entourage-flower-corner bottom-right" src={cornerFlower} alt="" />
+        <span className="entourage-flower-corner-wrap top-left">
+          <img className="entourage-flower-corner" src={cornerFlower} alt="" />
+        </span>
+        <span className="entourage-flower-corner-wrap top-right">
+          <img className="entourage-flower-corner" src={cornerFlower} alt="" />
+        </span>
+        <span className="entourage-flower-corner-wrap bottom-left">
+          <img className="entourage-flower-corner" src={cornerFlower} alt="" />
+        </span>
+        <span className="entourage-flower-corner-wrap bottom-right">
+          <img className="entourage-flower-corner" src={cornerFlower} alt="" />
+        </span>
       </div>
       <div className="entourage-dust-field" aria-hidden="true">
         {dustSpecks.map(([x, y, delay, duration], index) => (

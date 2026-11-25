@@ -20,19 +20,35 @@ import RsvpSection, {
 } from "./components/sections/RsvpSection.jsx";
 import ThankYouSection from "./components/sections/ThankYouSection.jsx";
 import OpeningScreen from "./components/OpeningScreen.jsx";
+import ScriptureIntro from "./components/ScriptureIntro.jsx";
 import SiteHeader from "./components/SiteHeader.jsx";
+import FloatingSectionNavigator from "./components/FloatingSectionNavigator.jsx";
 import { image } from "./data/weddingContent.js";
 
 function RsvpPopup({ onClose }) {
+  const [isClosing, setIsClosing] = useState(false);
   const closeButtonRef = useRef(null);
   const dialogRef = useRef(null);
+  const isClosingRef = useRef(false);
+
+  const handleClose = useCallback(() => {
+    if (isClosingRef.current) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      onClose();
+      return;
+    }
+
+    isClosingRef.current = true;
+    setIsClosing(true);
+  }, [onClose]);
 
   useEffect(() => {
     closeButtonRef.current?.focus();
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        onClose();
+        handleClose();
         return;
       }
 
@@ -56,18 +72,28 @@ function RsvpPopup({ onClose }) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [handleClose]);
+
+  const finishCloseAnimation = (event) => {
+    if (
+      event.target === dialogRef.current &&
+      isClosingRef.current
+    ) {
+      onClose();
+    }
+  };
 
   return createPortal(
     <div
-      className="rsvp-popup-backdrop"
+      className={`rsvp-popup-backdrop${isClosing ? " is-closing" : ""}`}
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget) handleClose();
       }}
     >
       <div
         ref={dialogRef}
-        className="rsvp-popup-dialog"
+        className={`rsvp-popup-dialog${isClosing ? " is-closing" : ""}`}
+        onAnimationEnd={finishCloseAnimation}
         role="dialog"
         aria-modal="true"
         aria-labelledby="rsvp-popup-heading"
@@ -77,7 +103,8 @@ function RsvpPopup({ onClose }) {
           ref={closeButtonRef}
           type="button"
           className="rsvp-popup-close"
-          onClick={onClose}
+          onClick={handleClose}
+          disabled={isClosing}
         >
           Close <span aria-hidden="true">×</span>
         </button>
@@ -95,10 +122,14 @@ function InvitationExperience() {
     useRsvpForm();
   const [openingState, setOpeningState] = useState("closed");
   const [showOpening, setShowOpening] = useState(true);
+  const [showScriptureIntro, setShowScriptureIntro] = useState(true);
+  const [hasLandingStarted, setHasLandingStarted] = useState(false);
   const [isHeroImageReady, setIsHeroImageReady] = useState(false);
   const [isRsvpPopupOpen, setIsRsvpPopupOpen] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [hasDismissedRsvpPopup, setHasDismissedRsvpPopup] = useState(false);
   const hasAutoPromptedRsvp = useRef(false);
+  const backgroundMusicRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -238,9 +269,42 @@ function InvitationExperience() {
     };
   }, [isRsvpPopupOpen]);
 
+  useEffect(() => {
+    const audio = backgroundMusicRef.current;
+    if (!audio) return undefined;
+
+    const syncPlayingState = () => setIsMusicPlaying(!audio.paused);
+    const handleAudioError = () => setIsMusicPlaying(false);
+    audio.addEventListener("play", syncPlayingState);
+    audio.addEventListener("pause", syncPlayingState);
+    audio.addEventListener("ended", syncPlayingState);
+    audio.addEventListener("error", handleAudioError);
+
+    return () => {
+      audio.removeEventListener("play", syncPlayingState);
+      audio.removeEventListener("pause", syncPlayingState);
+      audio.removeEventListener("ended", syncPlayingState);
+      audio.removeEventListener("error", handleAudioError);
+    };
+  }, []);
+
   const handleOpening = () => {
     if (openingState !== "closed" || !isHeroImageReady) return;
+
+    const playback = backgroundMusicRef.current?.play();
+    playback?.catch(() => setIsMusicPlaying(false));
     setOpeningState("opening");
+  };
+
+  const toggleBackgroundMusic = () => {
+    const audio = backgroundMusicRef.current;
+    if (!audio) return;
+
+    if (audio.paused) {
+      audio.play().catch(() => setIsMusicPlaying(false));
+    } else {
+      audio.pause();
+    }
   };
 
   const closeRsvpPopup = useCallback(() => {
@@ -248,12 +312,35 @@ function InvitationExperience() {
     setHasDismissedRsvpPopup(true);
   }, []);
 
+  const beginLandingReveal = useCallback(() => {
+    setHasLandingStarted(true);
+  }, []);
+
+  const finishScriptureIntro = useCallback(() => {
+    setShowScriptureIntro(false);
+  }, []);
+
   return (
     <>
-      {showOpening && (
+      <audio
+        ref={backgroundMusicRef}
+        className="invitation-background-music"
+        src={`${import.meta.env.BASE_URL}music/happiness.mp3`}
+        preload="none"
+        loop
+      />
+      {showScriptureIntro && (
+        <ScriptureIntro
+          audioRef={backgroundMusicRef}
+          onTransitionStart={beginLandingReveal}
+          onComplete={finishScriptureIntro}
+        />
+      )}
+      {hasLandingStarted && showOpening && (
         <OpeningScreen
           isHeroImageReady={isHeroImageReady}
           onOpen={handleOpening}
+          inert={showScriptureIntro}
         />
       )}
       <SiteHeader
@@ -305,6 +392,12 @@ function InvitationExperience() {
           </a>
         </footer>
       </main>
+      {openingState === "opened" && !isRsvpPopupOpen && (
+        <FloatingSectionNavigator
+          isMusicPlaying={isMusicPlaying}
+          onToggleMusic={toggleBackgroundMusic}
+        />
+      )}
       {isRsvpPopupOpen && <RsvpPopup onClose={closeRsvpPopup} />}
     </>
   );

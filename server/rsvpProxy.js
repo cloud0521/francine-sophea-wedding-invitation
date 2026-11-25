@@ -1,6 +1,115 @@
 import { createHmac } from "node:crypto";
 
 const MAX_BODY_BYTES = 16_000;
+const UUID_V4_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function validateRsvpPayload(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw requestError_("The RSVP request must be a JSON object.");
+  }
+
+  const allowedKeys = new Set([
+    "requestId",
+    "guestNames",
+    "attendance",
+    "message",
+    "website",
+  ]);
+  if (Object.keys(payload).some((key) => !allowedKeys.has(key))) {
+    throw requestError_("The RSVP request contains an unexpected field.");
+  }
+
+  if (typeof payload.website !== "string" || payload.website.length > 200) {
+    throw requestError_("The RSVP request could not be verified.");
+  }
+
+  if (payload.website.trim()) {
+    return { honeypot: true };
+  }
+
+  if (
+    typeof payload.requestId !== "string" ||
+    !UUID_V4_PATTERN.test(payload.requestId)
+  ) {
+    throw requestError_("Please refresh the page and try again.");
+  }
+
+  if (
+    !Array.isArray(payload.guestNames) ||
+    payload.guestNames.length < 1 ||
+    payload.guestNames.length > 5
+  ) {
+    throw requestError_("Choose between one and five guests.");
+  }
+
+  const guestNames = payload.guestNames.map((name) => {
+    if (typeof name !== "string") {
+      throw requestError_("Enter a full name for each guest.");
+    }
+
+    const normalizedName = name.trim().replace(/\s+/g, " ");
+    if (normalizedName.length < 1 || normalizedName.length > 100) {
+      throw requestError_("Each guest name must be 1 to 100 characters.");
+    }
+    return normalizedName;
+  });
+
+  const uniqueNames = new Set(guestNames.map((name) => name.toLocaleLowerCase()));
+  if (uniqueNames.size !== guestNames.length) {
+    throw requestError_("Please remove duplicate guest names.");
+  }
+
+  if (!["accept", "decline"].includes(payload.attendance)) {
+    throw requestError_("Choose an attendance response.");
+  }
+
+  if (typeof payload.message !== "string" || payload.message.length > 500) {
+    throw requestError_("The message must be 500 characters or fewer.");
+  }
+
+  return {
+    requestId: payload.requestId,
+    guestNames,
+    attendance: payload.attendance,
+    message: payload.message.trim(),
+    website: "",
+  };
+}
+
+export function isAllowedRsvpOrigin(request, configuredOrigins = "") {
+  const origin = request.headers?.origin;
+  const requestHost = request.headers?.host?.toLowerCase();
+  if (!origin || !requestHost) return false;
+
+  let originUrl;
+  try {
+    originUrl = new URL(origin);
+  } catch {
+    return false;
+  }
+
+  const isLocalDevelopment = ["localhost", "127.0.0.1"].includes(
+    originUrl.hostname,
+  );
+  if (!isLocalDevelopment && originUrl.protocol !== "https:") return false;
+  if (originUrl.host.toLowerCase() !== requestHost) return false;
+
+  const allowedOrigins = configuredOrigins
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  return (
+    allowedOrigins.length === 0 || allowedOrigins.includes(originUrl.origin)
+  );
+}
+
+function requestError_(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
 
 export function sendJson(response, statusCode, payload) {
   response.statusCode = statusCode;

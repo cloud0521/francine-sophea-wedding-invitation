@@ -1,0 +1,322 @@
+.scripture-intro {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+  overscroll-behavior: none;
+  touch-action: none;
+  color: #f7f2e8;
+  background:
+    radial-gradient(ellipse at 50% 75%, rgba(42, 70, 102, 0.4), transparent 52%),
+    radial-gradient(ellipse at 50% 18%, rgba(25, 48, 81, 0.58), transparent 58%),
+    #07152f;
+  opacity: 1;
+  transition: opacity 900ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scripture-intro.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scripture-intro-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scripture-intro-glow {
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 50% 75%,
+    rgba(201, 157, 83, 0.12),
+    transparent 34%
+  );
+}
+
+.scripture-intro-copy {
+  position: absolute;
+  z-index: 2;
+  top: clamp(128px, 20vh, 205px);
+  left: 50%;
+  width: min(90vw, 680px);
+  text-align: center;
+  transform: translateX(-50%);
+  animation: scripture-copy-reveal 1100ms ease-out 120ms both;
+}
+
+.scripture-intro-kicker,
+.scripture-intro-reference {
+  margin: 0;
+  color: #e0c893;
+  font: 600 10px / 1.4 "DM Sans", sans-serif;
+  letter-spacing: 0.24em;
+}
+
+.scripture-intro-verse {
+  margin: 24px 0 19px;
+  color: #f7f2e8;
+  font: italic clamp(30px, 4.6vw, 48px) / 1.3 "Playfair Display", Georgia,
+    serif;
+  font-weight: 400;
+}
+
+.scripture-intro-divider {
+  position: relative;
+  display: block;
+  width: 106px;
+  height: 14px;
+  margin: 0 auto 12px;
+}
+
+.scripture-intro-divider::before,
+.scripture-intro-divider::after {
+  position: absolute;
+  top: 50%;
+  width: 39px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c9a96c);
+  content: "";
+}
+
+.scripture-intro-divider::before {
+  left: 0;
+}
+
+.scripture-intro-divider::after {
+  right: 0;
+  transform: rotate(180deg);
+}
+
+.scripture-intro-divider i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border: 1px solid #e0c893;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.scripture-intro-reference {
+  color: rgba(247, 242, 232, 0.76);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+}
+
+.scripture-bible-stage {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  width: min(68vw, 680px);
+  height: clamp(135px, 25vh, 290px);
+  overflow: visible;
+  transform: translateX(-50%);
+  animation: scripture-bible-reveal 1300ms ease-out 280ms both;
+}
+
+.scripture-bible-halo {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  width: 78%;
+  height: 45%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    rgba(242, 194, 103, 0.34),
+    rgba(209, 157, 76, 0.13) 43%,
+    transparent 74%
+  );
+  filter: blur(24px);
+  transform: translate(-50%, -50%);
+  animation: bible-halo-breathe 5s ease-in-out infinite alternate;
+}
+
+.scripture-bible,
+.scripture-bible-reflection {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.scripture-bible {
+  top: 0;
+  filter: drop-shadow(0 8px 20px rgba(219, 166, 79, 0.18));
+}
+
+.scripture-bible-particles {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.scripture-bible-reflection {
+  top: 66%;
+  height: 36%;
+  opacity: 0.17;
+  filter: blur(1px);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), transparent 76%);
+  transform: scaleY(-1);
+  transform-origin: top;
+}
+
+.scripture-intro-loader {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  width: min(210px, 58vw);
+  color: rgba(247, 242, 232, 0.72);
+  font: 600 8px / 1.2 "DM Sans", sans-serif;
+  letter-spacing: 0.18em;
+  text-align: center;
+  transform: translateX(-50%);
+  animation: scripture-copy-reveal 900ms ease-out 500ms both;
+}
+
+.scripture-loader-track {
+  display: block;
+  width: 100%;
+  height: 1px;
+  overflow: hidden;
+  background: rgba(227, 205, 162, 0.24);
+}
+
+.scripture-loader-track > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #a7824c, #f0d9a0);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 350ms ease-out;
+}
+
+.scripture-particle {
+  position: absolute;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: #e8cc8f;
+  box-shadow: 0 0 7px 1px rgba(235, 198, 119, 0.38);
+  opacity: 0;
+  animation: scripture-page-ascend var(--particle-duration) ease-out
+    var(--particle-delay) infinite;
+}
+
+@keyframes scripture-copy-reveal {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes scripture-bible-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bible-halo-breathe {
+  from {
+    opacity: 0.48;
+    scale: 0.94;
+  }
+  to {
+    opacity: 0.88;
+    scale: 1.04;
+  }
+}
+
+@keyframes scripture-page-ascend {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.55);
+  }
+  22% {
+    opacity: 0.72;
+  }
+  48% {
+    opacity: 0.86;
+    transform: translate3d(
+        var(--particle-drift-mid),
+        var(--particle-rise-mid),
+        0
+      )
+      scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--particle-drift), var(--particle-rise), 0)
+      scale(0.45);
+  }
+}
+
+@media (max-width: 600px) {
+  .scripture-intro-copy {
+    top: clamp(140px, 23vh, 190px);
+    width: min(90vw, 500px);
+  }
+
+  .scripture-intro-verse {
+    margin: 20px 0 16px;
+    font-size: clamp(29px, 8vw, 36px);
+  }
+
+  .scripture-bible-stage {
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    width: 72vw;
+    height: clamp(125px, 22vh, 185px);
+  }
+
+  .scripture-bible-halo {
+    width: 92%;
+    height: 40%;
+    filter: blur(18px);
+  }
+
+  .scripture-intro-loader {
+    bottom: calc(17px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scripture-intro-copy,
+  .scripture-bible-stage,
+  .scripture-intro-loader,
+  .scripture-particle,
+  .scripture-bible-halo {
+    animation: none;
+    transition: none;
+  }
+
+  .scripture-intro-copy,
+  .scripture-bible-stage,
+  .scripture-intro-loader {
+    opacity: 1;
+  }
+
+  .scripture-intro.is-leaving {
+    transition-duration: 220ms;
+  }
+}

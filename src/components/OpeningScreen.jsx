@@ -4,7 +4,7 @@ import { image } from "../data/weddingContent.js";
 const landingImage = (filename) =>
   `${import.meta.env.BASE_URL}images/landing/${filename}`;
 
-function OpeningScreen({ isHeroImageReady, onOpen }) {
+function OpeningScreen({ isHeroImageReady, onOpen, inert = false }) {
   const [isOpening, setIsOpening] = useState(false);
   const openingStarted = useRef(false);
 
@@ -21,6 +21,7 @@ function OpeningScreen({ isHeroImageReady, onOpen }) {
       role="dialog"
       aria-modal="true"
       aria-label="Wedding invitation opening"
+      inert={inert}
     >
       <div className="opening-backdrop" aria-hidden="true" />
       <img

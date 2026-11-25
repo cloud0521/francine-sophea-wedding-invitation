@@ -171,6 +171,7 @@ function NotesSection() {
   return (
     <section
       ref={sectionRef}
+      id="notes"
       className="notes-chapter chapter-card thoughtful-notes"
       aria-label="Wedding Notes"
     >

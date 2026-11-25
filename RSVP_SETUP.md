@@ -64,6 +64,7 @@ Copy `.env.example` to `.env.local` and set:
 ```dotenv
 RSVP_APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
 RSVP_PROXY_SECRET=the-same-random-value-from-step-2
+RSVP_ALLOWED_ORIGINS=http://localhost:5173
 ```
 
 `.env.local` is ignored by Git. Restart `npm run web` (or `npm run dev`) after
@@ -73,17 +74,20 @@ Script, so the browser never receives the secret.
 ## 6. Connect the deployed site on Vercel
 
 In the Vercel project, open **Settings → Environment Variables** and add these
-server-side variables for Production (and Preview if you use preview
-deployments):
+server-side variables for **Production**:
 
 | Name | Value |
 | --- | --- |
 | `RSVP_APPS_SCRIPT_URL` | Your deployed `/exec` URL |
 | `RSVP_PROXY_SECRET` | The same random value stored in Apps Script |
+| `RSVP_ALLOWED_ORIGINS` | `https://dreamzinvites.asia` |
 
 Save the variables and redeploy the site so the function receives them. They
 must not be prefixed with `VITE_`; the `/api/rsvp` Vercel Function uses them on
-the server. The browser only calls the same-origin `/api/rsvp` endpoint.
+the server. The browser only calls the same-origin `/api/rsvp` endpoint. If the
+site is also served from `www.dreamzinvites.asia`, use both origins separated
+by a comma. Keep the RSVP URL and secret out of Preview deployments unless you
+intend preview sites to write to the live response sheet.
 
 ## 7. Test a submission
 
@@ -108,6 +112,11 @@ shows an error so the guest can retry.
 - React sends JSON only to the same-origin API; it does not use `no-cors`.
 - The Vercel Function signs the request with the server-only secret before
   forwarding it to Apps Script. Apps Script rejects direct unsigned requests.
+- The RSVP endpoint requires a matching same-origin `Origin` header and can be
+  restricted to a configured origin allowlist. This helps prevent cross-site
+  submissions, but does not identify or authenticate individual guests.
+- The public endpoint validates the request shape, guest count, names,
+  attendance value, message length, and honeypot before forwarding it.
 - Apps Script validates guest count, name length, duplicate names, attendance,
   message length, request ID, and the hidden honeypot before writing.
 - A script lock serializes duplicate checks and writes. A deterministic,
@@ -115,6 +124,6 @@ shows an error so the guest can retry.
   idempotent.
 - Each guest's row is appended in one `setValues()` batch. Formula-like names
   and messages are written as literal text.
-- A lightweight per-IP hourly request limit is applied by Apps Script. It is
-  intended for a small wedding RSVP form, not as a substitute for a managed
+- Apps Script limits each source IP to 20 valid submissions per hour. This is
+  intended for a small wedding RSVP form, not as a substitute for managed
   abuse-prevention service under a large public attack.

@@ -55,14 +55,12 @@ const galleryPhotos = [
 
 const entourageGroups = [
   { title: "Officiating Priest", people: ["Rev. Fr. Deary M. Jara"] },
-  {
-    title: "Maid of Honor",
-    people: ["Merryl Hondrada", "Marchet Valiente"],
-  },
+  { title: "Maid of Honor", people: ["Merryl Hondrada"] },
   { title: "Best Man", people: ["Ned Justine Guillen"] },
   {
     title: "Bridal Party",
     people: [
+      "Marchet Valiente",
       "Aira Grace Guillen",
       "Airish Kate Guillen",
       "Nicole Espeso",
@@ -163,6 +161,7 @@ const entourageGroups = [
       "Rogelio Bauden",
       "Lani Bismar",
       "Joseph Manit",
+      "Rev. Fr. Wilfredo Bayohin",
       "Ma. Fe Cabillon",
       "Rowena Lavega",
       "Precy Joy Limsiaco",

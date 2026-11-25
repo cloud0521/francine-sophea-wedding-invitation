@@ -29,7 +29,7 @@ function PetalField() {
       timerId = undefined;
     };
 
-    const createPetal = () => {
+    const createPetal = ({ startY: initialTop, left: initialLeft } = {}) => {
       const fallingCount = field.querySelectorAll(
         ".story-petal:not(.is-settled)",
       ).length;
@@ -43,13 +43,19 @@ function PetalField() {
       const size = isMobile
         ? randomBetween(12, 28)
         : randomBetween(16, 34);
-      const startY = -size;
-      const fallDistance = field.clientHeight;
-      const duration = randomBetween(12, 19);
-      const horizontalPosition = randomBetween(
+      const startY = initialTop ?? -size;
+      const fallDistance = Math.max(
         0,
-        Math.max(0, field.clientWidth - size),
+        field.clientHeight - size - startY,
       );
+      const fallProgress = Math.min(
+        1,
+        Math.max(0.35, fallDistance / field.clientHeight),
+      );
+      const duration = randomBetween(12, 19) * fallProgress;
+      const horizontalPosition =
+        initialLeft ??
+        randomBetween(0, Math.max(0, field.clientWidth - size));
       const petal = document.createElement("span");
       const image = document.createElement("img");
 
@@ -85,12 +91,30 @@ function PetalField() {
       petal.addEventListener("animationend", (event) => {
         if (event.target !== petal) return;
 
-        const landedCount = field.querySelectorAll(
-          ".story-petal.is-settled",
-        ).length;
+        const settledPetals = field.querySelectorAll(
+          ".story-petal.is-settled:not(.is-exiting)",
+        );
 
-        if (landedCount >= MAX_SETTLED_PETALS) {
-          field.querySelector(".story-petal.is-settled")?.remove();
+        if (settledPetals.length >= MAX_SETTLED_PETALS) {
+          const oldestPetal = settledPetals[0];
+          if (oldestPetal) {
+            oldestPetal.style.setProperty(
+              "--exit-distance",
+              `${randomBetween(42, 72)}px`,
+            );
+            oldestPetal.style.setProperty(
+              "--exit-drift",
+              `${randomBetween(-22, 22)}px`,
+            );
+            oldestPetal.classList.add("is-exiting");
+            oldestPetal.addEventListener(
+              "animationend",
+              (exitEvent) => {
+                if (exitEvent.target === oldestPetal) oldestPetal.remove();
+              },
+              { once: true },
+            );
+          }
         }
 
         petal.style.top = "auto";
@@ -98,6 +122,46 @@ function PetalField() {
         petal.classList.add("is-settled");
       });
       field.append(petal);
+    };
+
+    const seedInitialPetals = () => {
+      if (field.dataset.seeded === "true") return;
+      field.dataset.seeded = "true";
+
+      for (let index = 0; index < 12; index += 1) {
+        const isMobile = window.innerWidth <= 800;
+        const size = isMobile
+          ? randomBetween(14, 26)
+          : randomBetween(18, 32);
+        const petal = document.createElement("span");
+        const image = document.createElement("img");
+
+        petal.className = "story-petal is-settled";
+        petal.style.left = `${randomBetween(2, 94)}%`;
+        petal.style.top = "auto";
+        petal.style.bottom = "0px";
+        petal.style.setProperty("--petal-size", `${size}px`);
+        petal.style.setProperty("--rotation-start", `${randomBetween(-180, 180)}deg`);
+        image.src =
+          petalSources[Math.floor(Math.random() * petalSources.length)];
+        image.alt = "";
+        image.draggable = false;
+        petal.append(image);
+        field.append(petal);
+      }
+
+      const initialFallingPositions = [
+        { left: field.clientWidth * randomBetween(0.08, 0.2), top: 0.34 },
+        { left: field.clientWidth * randomBetween(0.78, 0.9), top: 0.47 },
+        { left: field.clientWidth * randomBetween(0.35, 0.65), top: 0.58 },
+      ];
+
+      initialFallingPositions.forEach(({ left, top }) => {
+        createPetal({
+          left,
+          startY: field.clientHeight * top,
+        });
+      });
     };
 
     const schedulePetal = () => {
@@ -113,6 +177,7 @@ function PetalField() {
       if (!isVisible || reducedMotion.matches || timerId) return;
 
       field.classList.remove("is-paused");
+      seedInitialPetals();
       createPetal();
       schedulePetal();
     };
