@@ -22,11 +22,11 @@ function AnnouncementSection() {
         <div className="hero-top-content">
           <span className="eyebrow">TOGETHER WITH THEIR FAMILIES</span>
           <h1>
-            Sophea
+            <span className="hero-name-shimmer">Sophea</span>
             <br />
             <em>and</em>
             <br />
-            Francine
+            <span className="hero-name-shimmer">Francine</span>
           </h1>
           <p className="hero-intro">
             invite you to celebrate a day filled with love, joy, and the

@@ -159,14 +159,10 @@ function EntourageSection() {
     ...Array.from({ length: 18 }, (_, index) =>
       sponsorNames.slice(index * 2, index * 2 + 2),
     ),
-    sponsorNames.slice(36, 39),
-    sponsorNames.slice(39, 42),
-    sponsorNames.slice(42, 45),
-    sponsorNames.slice(45, 48),
-    sponsorNames.slice(48, 50),
-    sponsorNames.slice(50, 51),
-    sponsorNames.slice(51, 53),
-    sponsorNames.slice(53, 55),
+    ...Array.from(
+      { length: Math.ceil((sponsorNames.length - 36) / 3) },
+      (_, index) => sponsorNames.slice(36 + index * 3, 39 + index * 3),
+    ),
   ].filter((row) => row.length > 0);
 
   return (

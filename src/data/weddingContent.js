@@ -171,6 +171,8 @@ const entourageGroups = [
       "Rowena Lavega",
       "Precy Joy Limsiaco",
       "Odinah Dayot",
+      "Maria Cristina Marquez",
+      "Gemma Ondoy",
     ],
   },
 ];
