@@ -225,7 +225,7 @@ button {
 }
 .hero-image {
   object-position: center 52%;
-  animation: slow-image 22s ease-in-out infinite alternate;
+  animation: slow-image 18s ease-in-out infinite alternate;
 }
 .hero-photo-wash {
   position: absolute;
@@ -1270,7 +1270,7 @@ footer p b {
     transform: scale(1);
   }
   to {
-    transform: scale(1.045);
+    transform: scale(1.06);
   }
 }
 .brand-monogram {
@@ -1567,6 +1567,10 @@ footer > * {
     animation: none !important;
     background: none;
     -webkit-text-fill-color: currentColor;
+  }
+  .hero-image {
+    animation: none !important;
+    transform: scale(1);
   }
 }
 
